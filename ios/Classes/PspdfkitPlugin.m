@@ -86,6 +86,7 @@ PSPDFSettingKey const PSPDFSettingKeyHybridEnvironment = @"com.pspdfkit.hybrid-e
         
         self.pdfViewController = [[PSPDFViewController alloc] initWithDocument:document configuration:configuration];
         [self setupViewController:configurationDictionary result:result];
+        [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(spreadIndexDidChange:) name:PSPDFDocumentViewControllerSpreadIndexDidChangeNotification object:nil];
 
     }else if([@"presentInstant" isEqualToString:call.method]){
         NSString *jwt = call.arguments[@"jwt"];
@@ -234,6 +235,13 @@ PSPDFSettingKey const PSPDFSettingKeyHybridEnvironment = @"com.pspdfkit.hybrid-e
         @"error": error.localizedDescription
     };
     [channel invokeMethod:@"pspdfkitInstantDownloadFailed" arguments:arguments];
+}
+
+- (void)spreadIndexDidChange:(NSNotification *)notification {
+    long oldPageIndex = [notification.userInfo[@"PSPDFDocumentViewControllerOldSpreadIndexKey"] longValue];
+    long currentPageIndex = [notification.userInfo[@"PSPDFDocumentViewControllerSpreadIndexKey"] longValue];
+    NSMutableDictionary *pageIndices = @{@"oldPageIndex": @(oldPageIndex), @"currentPageIndex": @(currentPageIndex)};
+    [channel invokeMethod:@"spreadIndexDidChange" arguments:pageIndices];
 }
 
 @end
